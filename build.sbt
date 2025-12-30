@@ -35,7 +35,7 @@ inThisBuild(
   )
 )
 
-initialCommands in console := """import dev.cheleb.sbt._"""
+initialCommands in console := """import dev.cheleb.sbt.fullstackjs._"""
 
 enablePlugins(ScriptedPlugin)
 // set up 'scripted; sbt plugin for testing sbt plugins

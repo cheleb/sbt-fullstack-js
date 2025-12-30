@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets
 
 object OnLoad {
 
-  def apply(scalaVersion: String, root: Project, client: Project) =
+  def apply(scalaVersion: String, root: File, client: Project) =
     sys.env.get("INIT") match {
       case Some("server") =>
         IO.write(
@@ -14,27 +14,24 @@ object OnLoad {
           "started",
           StandardCharsets.UTF_8
         )
-      case Some("npmDev")   =>
-      case Some("fastLink") =>
-      case Some(path)       => setup(path, scalaVersion, root, client)
-      case None             =>
+      case Some("global") => setup(scalaVersion, root, client)
+      case _              =>
         print("No init")
     }
 
   def setup(
-      path: String,
       scalaVersion: String,
-      root: Project,
+      root: File,
       client: Project
   ) = {
-    val outputFile = Path(path).asFile
+    val outputFile = root / "scripts" / "target" / "build-env.sh"
     println(s"🍺 Generating build-env.sh at $outputFile")
 
     val MAIN_JS_PATH =
       client.base.getAbsoluteFile / "target" / s"scala-$scalaVersion" / s"${client.id}-fastopt/main.js"
 
     val NPM_DEV_PATH =
-      root.base.getAbsoluteFile / "target" / "npm-dev-server-running.marker"
+      root / "target" / "npm-dev-server-running.marker"
 
     IO.writeLines(
       outputFile,
@@ -51,7 +48,7 @@ object OnLoad {
       StandardCharsets.UTF_8
     )
   }
-  def serverMarkerFile(server: Project) =
-    server.base.getAbsoluteFile / "target" / "dev-server-running.marker"
+  def serverMarkerFile(server: File) =
+    server / "target" / "dev-server-running.marker"
 
 }

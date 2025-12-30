@@ -13,8 +13,10 @@ object FullstackJsPlugin extends AutoPlugin {
     val publicFolder = settingKey[String](
       "public folder"
     )
-    val exampleTask =
-      taskKey[String]("A task that is automatically imported to the build")
+    val setup = taskKey[Unit]("setup")
+    val startupTransition: State => State = { s: State =>
+      "setup" :: s
+    }
     val scalaJsProject: SettingKey[Project] =
       settingKey[Project]("Client projects")
         .withRank(KeyRanks.Invisible)
@@ -24,7 +26,13 @@ object FullstackJsPlugin extends AutoPlugin {
 
   override lazy val projectSettings = Seq(
     publicFolder := "public",
-    exampleTask := "computed from example setting: " + publicFolder.value,
+    setup := {
+      OnLoad.apply(
+        (thisProject / scalaJsProject / scalaVersion).value,
+        (ThisBuild / baseDirectory).value,
+        (thisProject / scalaJsProject).value
+      )
+    },
     (Compile / resourceGenerators) += Def
       .taskDyn[Seq[File]] {
         val rootFolder = (Compile / resourceManaged).value / publicFolder.value
@@ -65,5 +73,12 @@ object FullstackJsPlugin extends AutoPlugin {
 
   override lazy val buildSettings = Seq()
 
-  override lazy val globalSettings = Seq()
+  override lazy val globalSettings = Seq(
+    Global / onLoad := {
+      val old = (Global / onLoad).value
+      // compose the new transition on top of the existing one
+      // in case your plugins are using this hook.
+      startupTransition compose old
+    }
+  )
 }
