@@ -32,44 +32,53 @@ object FullstackJsPlugin extends AutoPlugin {
         (ThisBuild / baseDirectory).value,
         (thisProject / scalaJsProject).value
       )
-    },
-    (Compile / resourceGenerators) += Def
-      .taskDyn[Seq[File]] {
-        val rootFolder = (Compile / resourceManaged).value / publicFolder.value
-        rootFolder.mkdirs()
+    }
+  ) ++ npmBuild
 
-        Def.task {
+  private def npmBuild =
+    sys.env.getOrElse("INIT", "") match {
+      case "FullStack" | "Docker" =>
+        Seq(
+          (Compile / resourceGenerators) += Def
+            .taskDyn[Seq[File]] {
+              val rootFolder =
+                (Compile / resourceManaged).value / publicFolder.value
+              rootFolder.mkdirs()
 
-          streams.value.log
-            .info(
-              s"Generating static files in <${projectID.value.name}>/${rootFolder.relativeTo(baseDirectory.value).getOrElse(rootFolder)}"
-            )
-          if (
-            scala.sys.process
-              .Process(
-                List(
-                  "npm",
-                  "run",
-                  "build",
-                  "--",
-                  "--emptyOutDir",
-                  "--outDir",
-                  rootFolder.getAbsolutePath
-                ),
-                scalaJsProject.value.base
-              )
-              .! == 0
-          ) {
-            (rootFolder ** "*.*").get
-          } else {
-            throw new IllegalStateException("Vite build failed")
-          }
+              Def.task {
 
-        }
+                streams.value.log
+                  .info(
+                    s"Generating static files in <${projectID.value.name}>/${rootFolder.relativeTo(baseDirectory.value).getOrElse(rootFolder)}"
+                  )
+                if (
+                  scala.sys.process
+                    .Process(
+                      List(
+                        "npm",
+                        "run",
+                        "build",
+                        "--",
+                        "--emptyOutDir",
+                        "--outDir",
+                        rootFolder.getAbsolutePath
+                      ),
+                      scalaJsProject.value.base
+                    )
+                    .! == 0
+                ) {
+                  (rootFolder ** "*.*").get
+                } else {
+                  throw new IllegalStateException("Vite build failed")
+                }
 
-      }
-      .taskValue
-  )
+              }
+
+            }
+            .taskValue
+        )
+      case _ => Seq()
+    }
 
   override lazy val buildSettings = Seq()
 

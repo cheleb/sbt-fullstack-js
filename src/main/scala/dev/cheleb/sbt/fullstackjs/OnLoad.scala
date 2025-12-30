@@ -8,15 +8,15 @@ object OnLoad {
 
   def apply(scalaVersion: String, root: File, client: Project) =
     sys.env.get("INIT") match {
+      case Some("setup")  => setup(scalaVersion, root, client)
       case Some("server") =>
         IO.write(
           serverMarkerFile(root),
           "started",
           StandardCharsets.UTF_8
         )
-      case Some("global") => setup(scalaVersion, root, client)
-      case _              =>
-        print("No init")
+      case _ =>
+
     }
 
   def setup(
