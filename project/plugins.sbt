@@ -1,4 +1,8 @@
 libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value
-addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.7")
-addSbtPlugin("com.codecommit" % "sbt-github-actions" % "0.13.0")
+// scalafmt: { maxColumn = 120, style = defaultWithAlign }
 
+addSbtPlugin("org.scalameta"  % "sbt-scalafmt"   % "2.5.6")
+addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.11.2")
+addSbtPlugin("com.github.sbt" % "sbt-dynver"     % "5.1.1")
+addSbtPlugin("com.github.sbt" % "sbt-git"        % "2.1.0")
+addSbtPlugin("com.github.sbt" % "sbt-pgp"        % "2.3.1")
