@@ -38,7 +38,7 @@ object OnLoad {
       s"""
          |# Generated file see build.sbt
          |SCALA_VERSION="$scalaVersion"
-         |# Marker file to indicate that server has bin started
+         |# Marker file to indicate that server has been started
          |SERVER_DEV_PATH=${serverMarkerFile(root)}
          |# Marker file to indicate that npm dev server has been started
          |MAIN_JS_PATH="${MAIN_JS_PATH}"
