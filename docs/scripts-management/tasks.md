@@ -33,19 +33,23 @@ This document outlines the self-contained components required to implement the S
 * Edge case: Placeholders missing from the map remain unchanged or result in a warning.
 * Edge case: Variables with special shell characters are handled (though mostly these will be alphanumeric).
 
-**Task 3**: Define Default Script Templates
-**Description**: Provide the default content for the suite of managed scripts: `run`, `build`, `docker`, and `setup.sc`.
+**Task 3**: Define Default Script Templates from `zio-rite-of-passage`
+**Description**: Provide the default content for the suite of managed scripts: `ci-build.sh`, `dockerPublish.sh`, `dockerPublishLocal.sh`, `faslLink.sh`, `fullstackRun.sh`, `npmDev.sh`, `serverRun.sh` and `setup.sc`, with appropriate placeholders for substitution. 
 **Purpose**: To provide a standardized "batteries-included" developer experience.
 **Behavior**: 
 * A set of strings or resource files containing the Bash/Ammonite code for each script.
 * Each template must start with the "managed" header.
-**Requirements**: 
+**Requirements**:
+Scripts to be managed: 
+* `ci-build.sh`: Production asset compilation for CI.
+* `dockerPublish.sh` and `dockerPublishLocal.sh`: Docker image publication logic.
+* `faslLink.sh`: Fastlink ScalaJS asset linking.
+* `fullstackRun.sh`: Fullstack application execution.
+* `npmDev.sh`: NPM development server startup.
+* `serverRun.sh`: Backend server startup.
 * `setup.sc`: Responsible for environment initialization.
-* `run`: Fullstack application execution.
-* `build`: Production asset compilation.
-* `docker`: Docker image publication logic.
-* Use Bash for `run`, `build`, `docker`.
-* Use Ammonite/Scala for `setup.sc`.
+* Use Bash for all `.sh` scripts.
+* Use scala-cli for `setup.sc`.
 **Testing criteria**:
 * Verification that all templates contain the mandatory header.
 * Verification that all templates use the defined placeholder syntax.
