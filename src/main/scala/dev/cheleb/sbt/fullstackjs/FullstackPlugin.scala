@@ -10,9 +10,16 @@ object FullstackPlugin extends AutoPlugin {
   override def requires: JvmPlugin.type = JvmPlugin
 
   object autoImport {
-    val setup = taskKey[Unit]("setup")
-    val startupTransition: State => State = { s: State =>
-      "setup" :: "fullstackScripts" :: s
+    val fullstackSetup = taskKey[Unit]("setup")
+    val fullstackServer = taskKey[Unit]("server")
+    val fullstackStartupTransition: State => State = { s: State =>
+      sys.env.get("INIT") match {
+        case Some("setup") =>
+          "fullstackSetup" :: "fullstackScripts" :: s
+        case Some("server") =>
+          "fullstackServer" :: s
+        case _ => s
+      }
     }
     val fullstackJsProject: SettingKey[Project] =
       settingKey[Project]("Client projects")
@@ -37,13 +44,14 @@ object FullstackPlugin extends AutoPlugin {
 
   override lazy val buildSettings = Seq(
     fullstackJvmProject := None,
-    setup := {
-      OnLoad.apply(
+    fullstackSetup :=
+      OnLoad.setup(
         (thisProject / fullstackJsProject / scalaVersion).value,
         (ThisBuild / baseDirectory).value,
-        (thisProject / fullstackJsProject).value
-      )
-    },
+        (thisProject / fullstackJsProject).value,
+        (thisProject / fullstackJvmProject).value
+      ),
+    fullstackServer := OnLoad.server((ThisBuild / baseDirectory).value),
     fullstackScriptsTemplates := DefaultTemplates.defaultTemplates,
     fullstackScriptsVariables := {
       Map(
@@ -75,7 +83,7 @@ object FullstackPlugin extends AutoPlugin {
       val old = (Global / onLoad).value
       // compose the new transition on top of the existing one
       // in case your plugins are using this hook.
-      startupTransition compose old
+      fullstackStartupTransition compose old
     }
   )
 }

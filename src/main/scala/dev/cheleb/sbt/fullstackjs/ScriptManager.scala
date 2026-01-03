@@ -61,7 +61,10 @@ object ScriptManager {
         throw new IllegalStateException(s"Not extension")
     }
 
-    IO.writeLines(file, List(header.stripMargin, content))
+    IO.write(
+      file,
+      s"${header.stripMargin}\n$content"
+    )
     file.setExecutable(true)
   }
 }
