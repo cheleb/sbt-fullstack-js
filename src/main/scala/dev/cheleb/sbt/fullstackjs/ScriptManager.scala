@@ -4,6 +4,8 @@ import sbt._
 import sbt.io.IO
 import scala.util.matching.Regex
 
+/** Handle file manipulation.
+  */
 object ScriptManager {
   val ManagedHeader =
     "-- DO NOT EDIT: This file is managed by sbt-fullstack-js plugin --"
@@ -14,6 +16,11 @@ object ScriptManager {
       case i  => Some(file.getName.substring(i + 1))
     }
 
+  /** Determine is a file is managed by this plugin.
+    *
+    * @param file
+    * @return
+    */
   def isManaged(file: File): Boolean = {
     if (!file.exists()) {
       true
@@ -32,6 +39,10 @@ object ScriptManager {
     }
   }
 
+  /** Substitute variables in a template.
+    *
+    * Mustache-like syntax.
+    */
   def substitute(template: String, variables: Map[String, String]): String = {
     """\{\{([^}]+)\}\}""".r.replaceAllIn(
       template,
@@ -42,7 +53,22 @@ object ScriptManager {
     )
   }
 
-  def writeScript(scriptsDir: File, name: String, content: String): Unit = {
+  /** Write a script file.
+    *
+    * If the file already exists and has the same content, it is not
+    * overwritten.
+    *
+    * @param scriptsDir
+    * @param name
+    * @param content
+    * @param log
+    */
+  def writeScript(
+      scriptsDir: File,
+      name: String,
+      content: String,
+      log: Logger
+  ): Unit = {
     if (!scriptsDir.exists()) {
       IO.createDirectory(scriptsDir)
     }
@@ -61,10 +87,14 @@ object ScriptManager {
         throw new IllegalStateException(s"Not extension")
     }
 
-    IO.write(
-      file,
-      s"${header.stripMargin}\n$content"
-    )
-    file.setExecutable(true)
+    val fullContent = s"${header.stripMargin}\n$content"
+
+    if (file.exists() && IO.read(file) == fullContent) {
+      log.debug(s"$name is up to date")
+    } else {
+      IO.write(file, fullContent)
+      file.setExecutable(true)
+      log.info(s"Updated $name")
+    }
   }
 }

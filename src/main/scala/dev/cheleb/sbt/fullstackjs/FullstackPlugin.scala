@@ -69,8 +69,7 @@ object FullstackPlugin extends AutoPlugin {
         val targetFile = scriptsDir / name
         if (ScriptManager.isManaged(targetFile)) {
           val content = ScriptManager.substitute(template, variables)
-          ScriptManager.writeScript(scriptsDir, name, content)
-          log.info(s"Updated $name")
+          ScriptManager.writeScript(scriptsDir, name, content, log)
         } else {
           log.warn(s"Skipped $name (unmanaged or custom)")
         }
