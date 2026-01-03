@@ -6,23 +6,17 @@ import java.nio.charset.StandardCharsets
 
 object OnLoad {
 
-  def apply(scalaVersion: String, root: File, client: Project) =
-    sys.env.get("INIT") match {
-      case Some("setup")  => setup(scalaVersion, root, client)
-      case Some("server") =>
-        IO.write(
-          serverMarkerFile(root),
-          "started",
-          StandardCharsets.UTF_8
-        )
-      case _ =>
-
-    }
+  def server(root: File) = IO.write(
+    serverMarkerFile(root),
+    "started",
+    StandardCharsets.UTF_8
+  )
 
   def setup(
       scalaVersion: String,
       root: File,
-      client: Project
+      client: Project,
+      server: Option[Project]
   ) = {
     val outputFile = root / "scripts" / "target" / "build-env.sh"
     println(s"🍺 Generating build-env.sh at $outputFile")
@@ -35,16 +29,13 @@ object OnLoad {
 
     IO.writeLines(
       outputFile,
-      s"""
-         |# Generated file see build.sbt
-         |SCALA_VERSION="$scalaVersion"
-         |# Marker file to indicate that server has been started
-         |SERVER_DEV_PATH=${serverMarkerFile(root)}
-         |# Marker file to indicate that npm dev server has been started
-         |MAIN_JS_PATH="${MAIN_JS_PATH}"
-         |# Marker file to indicate that npm dev server has been started
-         |NPM_DEV_PATH="${NPM_DEV_PATH}"
-         |""".stripMargin.split("\n").toList,
+      List(s"""|# Marker file to indicate that npm dev server has been started
+               |MAIN_JS_PATH="${MAIN_JS_PATH}"
+               |# Marker file to indicate that npm dev server has been started
+               |NPM_DEV_PATH="${NPM_DEV_PATH}"""".stripMargin) ::: server
+        .map(_ => s"""|# Marker file to indicate that server has been started
+              |SERVER_DEV_PATH="${serverMarkerFile(root)}"""".stripMargin)
+        .toList,
       StandardCharsets.UTF_8
     )
   }
