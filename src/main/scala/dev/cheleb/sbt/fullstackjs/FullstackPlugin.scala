@@ -10,6 +10,9 @@ object FullstackPlugin extends AutoPlugin {
   override def requires: JvmPlugin.type = JvmPlugin
 
   object autoImport {
+    val fullstackPublicFolder = settingKey[String](
+      "public folder"
+    )
     val fullstackSetup = taskKey[Unit]("setup")
     val fullstackServer = taskKey[Unit]("server")
     val fullstackStartupTransition: State => State = { s: State =>
@@ -21,6 +24,9 @@ object FullstackPlugin extends AutoPlugin {
         case _ => s
       }
     }
+    val fullstackJsModules: SettingKey[String] =
+      settingKey[String]("Client project module folder")
+        .withRank(KeyRanks.Invisible)
     val fullstackJsProject: SettingKey[Project] =
       settingKey[Project]("Client projects")
         .withRank(KeyRanks.Invisible)
@@ -40,9 +46,56 @@ object FullstackPlugin extends AutoPlugin {
   import autoImport._
 
   override lazy val projectSettings = Seq(
-  )
+    fullstackPublicFolder := "public"
+  ) ++ npmBuild
+
+  private def npmBuild =
+    sys.env.getOrElse("INIT", "") match {
+      case "FullStack" | "Docker" =>
+        Seq(
+          (Compile / resourceGenerators) += Def
+            .taskDyn[Seq[File]] {
+              val rootFolder =
+                (Compile / resourceManaged).value / fullstackPublicFolder.value
+              rootFolder.mkdirs()
+
+              Def.task {
+
+                streams.value.log
+                  .info(
+                    s"Generating static files in <${projectID.value.name}>/${rootFolder.relativeTo(baseDirectory.value).getOrElse(rootFolder)}"
+                  )
+                if (
+                  scala.sys.process
+                    .Process(
+                      List(
+                        "npm",
+                        "run",
+                        "build",
+                        "--",
+                        "--emptyOutDir",
+                        "--outDir",
+                        rootFolder.getAbsolutePath
+                      ),
+                      fullstackJsProject.value.base
+                    )
+                    .! == 0
+                ) {
+                  (rootFolder ** "*.*").get
+                } else {
+                  throw new IllegalStateException("Vite build failed")
+                }
+
+              }
+
+            }
+            .taskValue
+        )
+      case _ => Seq()
+    }
 
   override lazy val buildSettings = Seq(
+    fullstackJsModules := "modules",
     fullstackJvmProject := None,
     fullstackSetup :=
       OnLoad.setup(
@@ -52,9 +105,12 @@ object FullstackPlugin extends AutoPlugin {
         (thisProject / fullstackJvmProject).value
       ),
     fullstackServer := OnLoad.server((ThisBuild / baseDirectory).value),
-    fullstackScriptsTemplates := DefaultTemplates.defaultTemplates,
+    fullstackScriptsTemplates := DefaultTemplates.templates(
+      (thisProject / fullstackJvmProject).value
+    ),
     fullstackScriptsVariables := {
       Map(
+        "modules" -> fullstackJsModules.value,
         "appProjectId" -> fullstackJsProject.value.id
       ) ++ fullstackJvmProject.value.map(p => "serverProjectId" -> p.id)
     },

@@ -1,5 +1,7 @@
 package dev.cheleb.sbt.fullstackjs
 
+import sbt.Project
+
 object DefaultTemplates {
 
   val ciBuild = s"""
@@ -9,7 +11,7 @@ set -e
 
 INIT=Docker sbt -mem 4096 "{{serverProjectId}}/compile"
 
-cd modules/{{appProjectId}}
+cd {{modules}}/{{appProjectId}}
 
 npm run build
 """
@@ -95,7 +97,7 @@ echo " * SCALA_VERSION=$$SCALA_VERSION"
 rm -f $$MAIN_JS_PATH
 touch $$NPM_DEV_PATH
 
-cd modules/{{appProjectId}}
+cd {{modules}}/{{appProjectId}}
 npm run dev
 """
 
@@ -125,7 +127,7 @@ removeStartedMarker()
 //
 val app = args.headOption.getOrElse("{{appProjectId}}")
 
-given client: Path = os.pwd / "modules" / app
+given client: Path = os.pwd / "{{modules}}" / app
 
 if buildSbt isYoungerThan buildEnv then
   println(s"Importing project settings into build-env.sh ($$buildEnv)...")
@@ -196,14 +198,22 @@ extension (path: Path)
     )
 """
 
-  val defaultTemplates: Map[String, String] = Map(
+  private val serverTemplate = Map(
     "ci-build.sh" -> ciBuild,
     "dockerPublish.sh" -> dockerPublish,
     "dockerPublishLocal.sh" -> dockerPublishLocal,
-    "fastLink.sh" -> fastLink,
     "fullstackRun.sh" -> fullstackRun,
-    "npmDev.sh" -> npmDev,
-    "serverRun.sh" -> serverRun,
-    "setup.sc" -> setupSc
+    "serverRun.sh" -> serverRun
+  )
+
+  def templates(server: Option[Project]): Map[String, String] = server match {
+    case Some(_) => defaultTemplates ++ serverTemplate
+    case None    => defaultTemplates
+  }
+
+  private val defaultTemplates: Map[String, String] = Map(
+    "setup.sc" -> setupSc,
+    "fastLink.sh" -> fastLink,
+    "npmDev.sh" -> npmDev
   )
 }
