@@ -4,35 +4,22 @@ import sbt._
 import sbt.Keys._
 import sbt.plugins.JvmPlugin
 
-object FullstackJsPlugin extends AutoPlugin {
+object FullstackJvmPlugin extends AutoPlugin {
 
   override def trigger: PluginTrigger = noTrigger
-  override def requires: JvmPlugin.type = JvmPlugin
+  override def requires = JvmPlugin && FullstackPlugin
 
   object autoImport {
     val publicFolder = settingKey[String](
       "public folder"
     )
-    val setup = taskKey[Unit]("setup")
-    val startupTransition: State => State = { s: State =>
-      "setup" :: s
-    }
-    val scalaJsProject: SettingKey[Project] =
-      settingKey[Project]("Client projects")
-        .withRank(KeyRanks.Invisible)
   }
 
   import autoImport._
+  import FullstackPlugin.autoImport.fullstackJsProject
 
   override lazy val projectSettings = Seq(
-    publicFolder := "public",
-    setup := {
-      OnLoad.apply(
-        (thisProject / scalaJsProject / scalaVersion).value,
-        (ThisBuild / baseDirectory).value,
-        (thisProject / scalaJsProject).value
-      )
-    }
+    publicFolder := "public"
   ) ++ npmBuild
 
   private def npmBuild =
@@ -63,7 +50,7 @@ object FullstackJsPlugin extends AutoPlugin {
                         "--outDir",
                         rootFolder.getAbsolutePath
                       ),
-                      scalaJsProject.value.base
+                      fullstackJsProject.value.base
                     )
                     .! == 0
                 ) {
@@ -83,11 +70,5 @@ object FullstackJsPlugin extends AutoPlugin {
   override lazy val buildSettings = Seq()
 
   override lazy val globalSettings = Seq(
-    Global / onLoad := {
-      val old = (Global / onLoad).value
-      // compose the new transition on top of the existing one
-      // in case your plugins are using this hook.
-      startupTransition compose old
-    }
   )
 }
