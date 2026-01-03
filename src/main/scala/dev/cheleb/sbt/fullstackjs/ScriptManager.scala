@@ -26,4 +26,13 @@ object ScriptManager {
       }
     )
   }
+
+  def writeScript(scriptsDir: File, name: String, content: String): Unit = {
+    if (!scriptsDir.exists()) {
+      IO.createDirectory(scriptsDir)
+    }
+    val file = scriptsDir / name
+    IO.write(file, content)
+    file.setExecutable(true)
+  }
 }
