@@ -2,6 +2,7 @@ package dev.cheleb.sbt.fullstackjs
 
 import sbt._
 import sbt.io.IO
+import scala.util.matching.Regex
 
 object ScriptManager {
   val ManagedHeader =
@@ -14,5 +15,15 @@ object ScriptManager {
       val lines = IO.readLines(file)
       lines.headOption.exists(_.trim == ManagedHeader)
     }
+  }
+
+  def substitute(template: String, variables: Map[String, String]): String = {
+    """\{\{([^}]+)\}\}""".r.replaceAllIn(
+      template,
+      m => {
+        val name = m.group(1)
+        variables.get(name).map(Regex.quoteReplacement).getOrElse(m.matched)
+      }
+    )
   }
 }

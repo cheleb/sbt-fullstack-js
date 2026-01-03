@@ -19,7 +19,7 @@ This document outlines the self-contained components required to implement the S
 * Edge case: File without header returns `false`.
 * Edge case: Empty file returns `false`.
 
-**Task 2**: Implement Template Substitution Engine
+**Task 2**: [x] Implement Template Substitution Engine
 **Description**: Create a simple string replacement engine that substitutes placeholders in templates with project-specific variables.
 **Purpose**: To allow dynamic generation of scripts based on the sbt project configuration (e.g., module names, main classes).
 **Behavior**: 
