@@ -70,7 +70,7 @@ Scripts to be managed:
 * Happy path: File is executable after writing.
 * Edge case: Attempting to write to a read-only directory should fail with a descriptive error.
 
-**Task 5**: Implement sbt Plugin Task and Settings
+**Task 5**: [x] Implement sbt Plugin Task and Settings
 **Description**: Integrate the logic into the sbt plugin by defining the `fullstackScripts` task and associated settings.
 **Purpose**: To expose the script management functionality to the user via the sbt CLI.
 **Behavior**: 
