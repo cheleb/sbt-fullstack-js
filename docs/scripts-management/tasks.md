@@ -2,7 +2,7 @@
 
 This document outlines the self-contained components required to implement the Script Management feature for the `sbt-fullstack-js` plugin.
 
-**Task 1**: Implement Managed Header Recognition and Ownership Check
+**Task 1**: [x] Implement Managed Header Recognition and Ownership Check
 **Description**: Create a utility to determine if a script file is managed by the plugin. This involves checking if the file exists and if its first line contains the specific "managed" header string.
 **Purpose**: To respect developer autonomy and avoid overwriting custom scripts as per the "header-based" ownership model.
 **Behavior**: 
