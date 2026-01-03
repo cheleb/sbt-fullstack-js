@@ -12,7 +12,7 @@ object FullstackPlugin extends AutoPlugin {
   object autoImport {
     val setup = taskKey[Unit]("setup")
     val startupTransition: State => State = { s: State =>
-      "setup" :: s
+      "setup" :: "fullstackScripts" :: s
     }
     val fullstackJsProject: SettingKey[Project] =
       settingKey[Project]("Client projects")
@@ -33,6 +33,9 @@ object FullstackPlugin extends AutoPlugin {
   import autoImport._
 
   override lazy val projectSettings = Seq(
+  )
+
+  override lazy val buildSettings = Seq(
     fullstackJvmProject := None,
     setup := {
       OnLoad.apply(
@@ -66,8 +69,6 @@ object FullstackPlugin extends AutoPlugin {
       }
     }
   )
-
-  override lazy val buildSettings = Seq()
 
   override lazy val globalSettings = Seq(
     Global / onLoad := {
