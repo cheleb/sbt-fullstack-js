@@ -1,10 +1,8 @@
 package dev.cheleb.sbt.fullstackjs
 
 object DefaultTemplates {
-  val ManagedHeader = ScriptManager.ManagedHeader
 
-  val ciBuild = s"""$ManagedHeader
-#!/usr/bin/env bash
+  val ciBuild = s"""
 set -e
 
 ./scripts/setup.sc -- {{appProjectId}}
@@ -16,8 +14,7 @@ cd modules/{{appProjectId}}
 npm run build
 """
 
-  val dockerPublish = s"""$ManagedHeader
-#!/usr/bin/env bash
+  val dockerPublish = s"""
 set -e
 # Import the project environment variables
 
@@ -26,8 +23,7 @@ set -e
 INIT=Docker sbt -mem 4096 "{{serverProjectId}}/Docker/publish"
 """
 
-  val dockerPublishLocal = s"""$ManagedHeader
-#!/usr/bin/env bash
+  val dockerPublishLocal = s"""
 set -e
 # Import the project environment variables
 
@@ -36,9 +32,7 @@ set -e
 INIT=Docker sbt "{{serverProjectId}}/Docker/publishLocal"
 """
 
-  val fastLink = s"""$ManagedHeader
-#!/usr/bin/env bash
-
+  val fastLink = s"""
 if [ -e ./scripts/target/build-env.sh ]; then
  . ./scripts/target/build-env.sh
 else
@@ -67,8 +61,7 @@ echo "⏱️ Watching client-fastopt/main.js for changes..."
 sbt --batch -Dsbt.supershell=false '~{{appProjectId}}/fastLinkJS'
 """
 
-  val fullstackRun = s"""$ManagedHeader
-#!/usr/bin/env bash
+  val fullstackRun = s"""
 set -e
 #
 # This script is used to run the fullstack server
@@ -80,9 +73,7 @@ docker-compose up -d
 INIT=FullStack sbt -mem 4096 "{{serverProjectId}}/run"
 """
 
-  val npmDev = s"""$ManagedHeader
-#!/usr/bin/env bash
-
+  val npmDev = s"""
 if [ -e ./scripts/target/build-env.sh ]; then
  . ./scripts/target/build-env.sh
 else
@@ -108,16 +99,13 @@ cd modules/{{appProjectId}}
 npm run dev
 """
 
-  val serverRun = s"""$ManagedHeader
-#!/usr/bin/env bash
+  val serverRun = s"""
 set -e
 
 INIT=server sbt '~{{serverProjectId}}/reStart'
 """
 
-  val setupSc = s"""$ManagedHeader
-#!/usr/bin/env -S scala-cli --scala-version 3.8.0-RC5
-
+  val setupSc = s"""
 // using javaOptions "--sun-misc-unsafe-memory-access=allow" // Example option to set maximum heap size
 //> using dep "com.lihaoyi::os-lib:0.11.6"
 

@@ -6,14 +6,29 @@ import scala.util.matching.Regex
 
 object ScriptManager {
   val ManagedHeader =
-    "# DO NOT EDIT: This file is managed by sbt-fullstack-js plugin"
+    "-- DO NOT EDIT: This file is managed by sbt-fullstack-js plugin --"
+
+  private def fileExtension(file: File): Option[String] =
+    file.getName.lastIndexOf(".") match {
+      case -1 => None
+      case i  => Some(file.getName.substring(i + 1))
+    }
 
   def isManaged(file: File): Boolean = {
     if (!file.exists()) {
       true
     } else {
       val lines = IO.readLines(file)
-      lines.headOption.exists(_.trim == ManagedHeader)
+      val comment =
+        fileExtension(file) match {
+          case Some("sh") => "#"
+          case Some("sc") => "//"
+          case Some(ext)  =>
+            throw new IllegalStateException(s"Unsupported extension [$ext]")
+          case None =>
+            throw new IllegalStateException(s"Not extension")
+        }
+      lines.slice(1, 2).headOption.exists(_.trim == s"$comment$ManagedHeader")
     }
   }
 
@@ -32,7 +47,21 @@ object ScriptManager {
       IO.createDirectory(scriptsDir)
     }
     val file = scriptsDir / name
-    IO.write(file, content)
+
+    val header = fileExtension(file) match {
+      case Some("sh") =>
+        s"""|#!/usr/bin/env bash
+            |#$ManagedHeader"""
+      case Some("sc") =>
+        s"""|#!/usr/bin/env -S scala-cli --scala-version 3.8.0-RC5
+            |//$ManagedHeader"""
+      case Some(ext) =>
+        throw new IllegalStateException(s"Unsupported extension [$ext]")
+      case None =>
+        throw new IllegalStateException(s"Not extension")
+    }
+
+    IO.writeLines(file, List(header.stripMargin, content))
     file.setExecutable(true)
   }
 }
