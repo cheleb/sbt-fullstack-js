@@ -33,7 +33,7 @@ This document outlines the self-contained components required to implement the S
 * Edge case: Placeholders missing from the map remain unchanged or result in a warning.
 * Edge case: Variables with special shell characters are handled (though mostly these will be alphanumeric).
 
-**Task 3**: Define Default Script Templates from `zio-rite-of-passage`
+**Task 3**: [x] Define Default Script Templates from `zio-rite-of-passage`
 **Description**: Provide the default content for the suite of managed scripts: `ci-build.sh`, `dockerPublish.sh`, `dockerPublishLocal.sh`, `faslLink.sh`, `fullstackRun.sh`, `npmDev.sh`, `serverRun.sh` and `setup.sc`, with appropriate placeholders for substitution. 
 **Purpose**: To provide a standardized "batteries-included" developer experience.
 **Behavior**: 
