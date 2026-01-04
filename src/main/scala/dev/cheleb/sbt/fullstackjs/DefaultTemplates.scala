@@ -7,9 +7,11 @@ object DefaultTemplates {
   val ciBuild = s"""
 set -e
 
-./scripts/setup.sc -- {{appProjectId}}
+sbt fullstackInit
 
-INIT=Docker sbt -mem 4096 "{{serverProjectId}}/compile"
+./{{managed}}/setup.sc -- {{appProjectId}}
+
+sbt -mem 4096 "{{serverProjectId}}/compile"
 
 cd {{modules}}/{{appProjectId}}
 
@@ -18,27 +20,25 @@ npm run build
 
   val dockerPublish = s"""
 set -e
-# Import the project environment variables
 
-./scripts/setup.sc -- {{appProjectId}}
+./{{managed}}/setup.sc -- {{appProjectId}}
 
-INIT=Docker sbt -mem 4096 "{{serverProjectId}}/Docker/publish"
+sbt -mem 4096 "project {{serverProjectId}}; set fullstackNpmBuild := true; Docker/publish"
 """
 
   val dockerPublishLocal = s"""
 set -e
-# Import the project environment variables
 
-./scripts/setup.sc -- {{appProjectId}}
+./{{managed}}/setup.sc -- {{appProjectId}}
 
-INIT=Docker sbt "{{serverProjectId}}/Docker/publishLocal"
+sbt -mem 4096 "project {{serverProjectId}}; set fullstackNpmBuild := true; Docker/publishLocal"
 """
 
   val fastLink = s"""
-if [ -e ./scripts/target/build-env.sh ]; then
- . ./scripts/target/build-env.sh
+if [ -e ./{{managed}}/build-env.sh ]; then
+ . ./{{managed}}/build-env.sh
 else
- echo "Error: build-env.sh not found. Please run ./scripts/setup.sc first."
+ echo "Error: build-env.sh not found. Please run ./{{managed}}/setup.sc first."
  exit 1
 fi
 
@@ -68,18 +68,18 @@ set -e
 #
 # This script is used to run the fullstack server
 #
-./scripts/setup.sc -- {{appProjectId}}
+./{{managed}}/setup.sc -- {{appProjectId}}
 
 docker-compose up -d
 
-INIT=FullStack sbt -mem 4096 "{{serverProjectId}}/run"
+sbt -mem 4096 "project {{serverProjectId}}; set fullstackNpmBuild := true; run"
 """
 
   val npmDev = s"""
-if [ -e ./scripts/target/build-env.sh ]; then
- . ./scripts/target/build-env.sh
+if [ -e ./{{managed}}/build-env.sh ]; then
+ . ./{{managed}}/build-env.sh
 else
- echo "Error: build-env.sh not found. Please run ./scripts/setup.sc first."
+ echo "Error: build-env.sh not found. Please run ./{{managed}}/setup.sc first."
  exit 1
 fi
 
@@ -104,7 +104,7 @@ npm run dev
   val serverRun = s"""
 set -e
 
-INIT=server sbt '~{{serverProjectId}}/reStart'
+sbt 'fullstackServer; ~{{serverProjectId}}/reStart'
 """
 
   val setupSc = s"""
@@ -131,10 +131,9 @@ given client: Path = os.pwd / "{{modules}}" / app
 
 if buildSbt isYoungerThan buildEnv then
   println(s"Importing project settings into build-env.sh ($$buildEnv)...")
-  os.proc("sbt", "projects")
+  os.proc("sbt", "fullstackInit")
     .call(
       cwd = os.pwd,
-      env = Map("INIT" -> "setup"),
       stdout = os.ProcessOutput.Readlines(line => println(s"  $$line"))
     )
 
@@ -164,7 +163,7 @@ def npmCommand(using client: Path): Option[String] =
   }
 
 def buildSbt                            = os.pwd / "build.sbt"
-def buildEnv                            = os.pwd / "scripts" / "target" / "build-env.sh"
+def buildEnv                            = os.pwd / "{{managed}}" / "build-env.sh"
 def devMarker                           = os.pwd / "target" / "dev-server-running.marker"
 def npmDevMarker                        = os.pwd / "target" / "npm-dev-server-running.marker"
 def nodeModule(using client: Path)      = client / "node_modules" / ".package-lock.json"

@@ -18,7 +18,7 @@ object OnLoad {
       client: Project,
       server: Option[Project]
   ) = {
-    val outputFile = root / "scripts" / "target" / "build-env.sh"
+    val outputFile = root / "scripts-managed" / "build-env.sh"
     println(s"🍺 Generating build-env.sh at $outputFile")
 
     val MAIN_JS_PATH =

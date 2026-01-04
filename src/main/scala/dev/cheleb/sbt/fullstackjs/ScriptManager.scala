@@ -7,6 +7,7 @@ import scala.util.matching.Regex
 /** Handle file manipulation.
   */
 object ScriptManager {
+
   val ManagedHeader =
     "-- DO NOT EDIT: This file is managed by sbt-fullstack-js plugin --"
 
