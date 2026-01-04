@@ -7,8 +7,6 @@ object DefaultTemplates {
   val ciBuild = s"""
 set -e
 
-sbt fullstackInit
-
 ./{{managed}}/setup.sc -- {{appProjectId}}
 
 sbt -mem 4096 "{{serverProjectId}}/compile"
