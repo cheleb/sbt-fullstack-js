@@ -46,13 +46,7 @@ lazy val client = (project in file("client"))
 
 ## Usage
 
-### Environment Variables
-
-The plugin's behavior can be toggled using the `INIT` environment variable:
-
-- `INIT=setup`: Triggers the generation of `scripts/target/build-env.sh`. This is typically used by development scripts or VS Code tasks.
-- `INIT=server`: Creates a `target/dev-server-running.marker` file, indicating the server has started.
-- `INIT=FullStack` or `INIT=Docker`: Enables the `resourceGenerators` that run `npm run build` and include the results in the backend classpath.
+The plugin automatically integrates with your build process. However, you can manually trigger the setup task if needed.
 
 ### Tasks
 

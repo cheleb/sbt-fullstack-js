@@ -13,17 +13,13 @@ object FullstackPlugin extends AutoPlugin {
     val fullstackPublicFolder = settingKey[String](
       "public folder"
     )
+    val fullstackInit = taskKey[Unit]("init")
     val fullstackSetup = taskKey[Unit]("setup")
     val fullstackServer = taskKey[Unit]("server")
-    val fullstackStartupTransition: State => State = { s: State =>
-      sys.env.get("INIT") match {
-        case Some("setup") =>
-          "fullstackSetup" :: "fullstackScripts" :: s
-        case Some("server") =>
-          "fullstackServer" :: s
-        case _ => s
-      }
-    }
+    val fullstackDocker: SettingKey[Boolean] =
+      settingKey[Boolean]("Docker")
+    val fullstackNpmBuild: SettingKey[Boolean] =
+      settingKey[Boolean]("npm build (false)")
     val fullstackJsModules: SettingKey[String] =
       settingKey[String]("Client project module folder")
         .withRank(KeyRanks.Invisible)
@@ -46,53 +42,57 @@ object FullstackPlugin extends AutoPlugin {
   import autoImport._
 
   override lazy val projectSettings = Seq(
-    fullstackPublicFolder := "public"
+    fullstackPublicFolder := "public",
+    fullstackNpmBuild := false
   ) ++ npmBuild
 
   private def npmBuild =
-    sys.env.getOrElse("INIT", "") match {
-      case "FullStack" | "Docker" =>
-        Seq(
-          (Compile / resourceGenerators) += Def
-            .taskDyn[Seq[File]] {
-              val rootFolder =
-                (Compile / resourceManaged).value / fullstackPublicFolder.value
-              rootFolder.mkdirs()
+    Seq(
+      (Compile / resourceGenerators) ++= (fullstackNpmBuild.value match {
+        case true =>
+          Seq(
+            Def
+              .taskDyn[Seq[File]] {
 
-              Def.task {
+                val rootFolder =
+                  (Compile / resourceManaged).value / fullstackPublicFolder.value
+                rootFolder.mkdirs()
 
-                streams.value.log
-                  .info(
-                    s"Generating static files in <${projectID.value.name}>/${rootFolder.relativeTo(baseDirectory.value).getOrElse(rootFolder)}"
-                  )
-                if (
-                  scala.sys.process
-                    .Process(
-                      List(
-                        "npm",
-                        "run",
-                        "build",
-                        "--",
-                        "--emptyOutDir",
-                        "--outDir",
-                        rootFolder.getAbsolutePath
-                      ),
-                      fullstackJsProject.value.base
+                Def.task {
+
+                  streams.value.log
+                    .info(
+                      s"Generating static files in <${projectID.value.name}>/${rootFolder.relativeTo(baseDirectory.value).getOrElse(rootFolder)}"
                     )
-                    .! == 0
-                ) {
-                  (rootFolder ** "*.*").get
-                } else {
-                  throw new IllegalStateException("Vite build failed")
+                  if (
+                    scala.sys.process
+                      .Process(
+                        List(
+                          "npm",
+                          "run",
+                          "build",
+                          "--",
+                          "--emptyOutDir",
+                          "--outDir",
+                          rootFolder.getAbsolutePath
+                        ),
+                        fullstackJsProject.value.base
+                      )
+                      .! == 0
+                  ) {
+                    (rootFolder ** "*.*").get
+                  } else {
+                    throw new IllegalStateException("Vite build failed")
+                  }
+
                 }
 
               }
-
-            }
-            .taskValue
-        )
-      case _ => Seq()
-    }
+              .taskValue
+          )
+        case false => Seq.empty
+      })
+    )
 
   override lazy val buildSettings = Seq(
     fullstackJsModules := "modules",
@@ -117,28 +117,26 @@ object FullstackPlugin extends AutoPlugin {
     fullstackScripts := {
       val log = streams.value.log
       val base = (ThisBuild / baseDirectory).value
-      val scriptsDir = base / "scripts"
+      val scriptsDir = base / "scripts-managed"
       val templates = fullstackScriptsTemplates.value
       val variables = fullstackScriptsVariables.value
 
       templates.foreach { case (name, template) =>
         val targetFile = scriptsDir / name
         if (ScriptManager.isManaged(targetFile)) {
-          val content = ScriptManager.substitute(template, variables)
+          val content =
+            ScriptManager.substitute(
+              template,
+              variables + ("managed" -> "scripts-managed")
+            )
           ScriptManager.writeScript(scriptsDir, name, content, log)
         } else {
           log.warn(s"Skipped $name (unmanaged or custom)")
         }
       }
-    }
+    },
+    fullstackInit := Def.sequential(fullstackSetup, fullstackScripts).value
   )
 
-  override lazy val globalSettings = Seq(
-    Global / onLoad := {
-      val old = (Global / onLoad).value
-      // compose the new transition on top of the existing one
-      // in case your plugins are using this hook.
-      fullstackStartupTransition compose old
-    }
-  )
+  override lazy val globalSettings = Seq()
 }
