@@ -23,6 +23,9 @@ object FullstackPlugin extends AutoPlugin {
     val fullstackJsModules: SettingKey[String] =
       settingKey[String]("Client project module folder")
         .withRank(KeyRanks.Invisible)
+    val fullstackJsAssets: SettingKey[Seq[String]] =
+      settingKey[Seq[String]]("Client project asset folders")
+        .withRank(KeyRanks.Invisible)
     val fullstackJsProject: SettingKey[Project] =
       settingKey[Project]("Client projects")
         .withRank(KeyRanks.Invisible)
@@ -43,9 +46,19 @@ object FullstackPlugin extends AutoPlugin {
 
   override lazy val projectSettings = Seq(
     fullstackPublicFolder := "public",
+    fullstackJsAssets := Seq("img", "css"),
     fullstackNpmBuild := false
   ) ++ npmBuild
 
+  /** Generate static files from JS project
+    *
+    *   - ScalaJS
+    *   - copy static resources
+    *     - img
+    *     - css
+    *
+    * @return
+    */
   private def npmBuild =
     Seq(
       (Compile / resourceGenerators) ++= (fullstackNpmBuild.value match {
@@ -80,6 +93,11 @@ object FullstackPlugin extends AutoPlugin {
                       )
                       .! == 0
                   ) {
+                    copyResources(
+                      fullstackJsProject.value.base,
+                      rootFolder,
+                      fullstackJsAssets.value: _*
+                    )
                     (rootFolder ** "*.*").get
                   } else {
                     throw new IllegalStateException("Vite build failed")
@@ -93,6 +111,15 @@ object FullstackPlugin extends AutoPlugin {
         case false => Seq.empty
       })
     )
+  private def copyResources(from: File, to: File, folders: String*) =
+    folders.foreach { folder =>
+      IO.copyDirectory(
+        from / folder,
+        to / folder,
+        overwrite = true,
+        preserveLastModified = true
+      )
+    }
 
   override lazy val buildSettings = Seq(
     fullstackJsModules := "modules",
