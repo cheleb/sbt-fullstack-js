@@ -46,7 +46,7 @@ object FullstackPlugin extends AutoPlugin {
 
   override lazy val projectSettings = Seq(
     fullstackPublicFolder := "public",
-    fullstackJsAssets := Seq("img", "css"),
+    fullstackJsAssets := Seq(),
     fullstackNpmBuild := false
   ) ++ npmBuild
 
