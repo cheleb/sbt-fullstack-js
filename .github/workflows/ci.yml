@@ -14,6 +14,7 @@ jobs:
         cache: sbt
     - name: Install sbt
       uses: sbt/setup-sbt@v1
-    - name: Setup Graphviz
-      uses: ts-graphviz/setup-graphviz@v2
-    - run: sbt test
+    - name: sbt 1.x (Scala 2.12)
+      run: sbt test 
+    - name: sbt 2.x (Scala 3.7)
+      run: sbt "++ 3; test"
