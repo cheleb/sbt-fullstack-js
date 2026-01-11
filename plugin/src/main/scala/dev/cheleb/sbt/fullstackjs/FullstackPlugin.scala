@@ -14,6 +14,7 @@ object FullstackPlugin extends AutoPlugin {
       "public folder"
     )
     val fullstackInit = taskKey[Unit]("init")
+    @transient
     val fullstackSetup = taskKey[Unit]("setup")
     val fullstackServer = taskKey[Unit]("server")
     val fullstackDocker: SettingKey[Boolean] =
@@ -32,10 +33,12 @@ object FullstackPlugin extends AutoPlugin {
     val fullstackJvmProject: SettingKey[Option[Project]] =
       settingKey[Option[Project]]("Server projects")
         .withRank(KeyRanks.Invisible)
+    @transient
     val fullstackScripts =
       taskKey[Unit]("Generate helper scripts for fullstack development")
     val fullstackScriptsTemplates =
       settingKey[Map[String, String]]("Custom templates for fullstack scripts")
+    @transient
     val fullstackScriptsVariables =
       taskKey[Map[String, String]](
         "Variables to substitute in fullstack script templates"
@@ -96,9 +99,9 @@ object FullstackPlugin extends AutoPlugin {
                     copyResources(
                       fullstackJsProject.value.base,
                       rootFolder,
-                      fullstackJsAssets.value: _*
+                      fullstackJsAssets.value
                     )
-                    (rootFolder ** "*.*").get
+                    (rootFolder ** "*.*").get()
                   } else {
                     throw new IllegalStateException("Vite build failed")
                   }
@@ -111,7 +114,7 @@ object FullstackPlugin extends AutoPlugin {
         case false => Seq.empty
       })
     )
-  private def copyResources(from: File, to: File, folders: String*) =
+  private def copyResources(from: File, to: File, folders: Seq[String]) =
     folders.foreach { folder =>
       IO.copyDirectory(
         from / folder,
