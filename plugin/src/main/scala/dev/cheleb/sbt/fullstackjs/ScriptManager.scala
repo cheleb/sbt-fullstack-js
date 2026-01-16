@@ -80,7 +80,7 @@ object ScriptManager {
         s"""|#!/usr/bin/env bash
             |#$ManagedHeader"""
       case Some("sc") =>
-        s"""|#!/usr/bin/env -S scala-cli --scala-version 3.8.0-RC5
+        s"""|#!/usr/bin/env -S scala-cli --scala-version 3.8.0
             |//$ManagedHeader"""
       case Some(ext) =>
         throw new IllegalStateException(s"Unsupported extension [$ext]")

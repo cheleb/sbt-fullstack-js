@@ -29,7 +29,8 @@ object OnLoad {
 
     IO.writeLines(
       outputFile,
-      List(s"""|# Marker file to indicate that npm dev server has been started
+      List(s"""|SCALA_VERSION=${scalaVersion}
+               |# Marker file to indicate that npm dev server has been started
                |MAIN_JS_PATH="${MAIN_JS_PATH}"
                |# Marker file to indicate that npm dev server has been started
                |NPM_DEV_PATH="${NPM_DEV_PATH}"""".stripMargin) ::: server

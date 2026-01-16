@@ -13,7 +13,7 @@ sbt -mem 4096 "{{serverProjectId}}/compile"
 
 cd {{modules}}/{{appProjectId}}
 
-npm run build
+{{jsPackageManager}} run build
 """
 
   val dockerPublish = s"""
@@ -40,7 +40,7 @@ else
  exit 1
 fi
 
-echo -n "Waiting for npm dev server to start."
+echo -n "Waiting for {{jsPackageManager}} dev server to start."
 
 until [ -e $$NPM_DEV_PATH ]; do
     echo -n "."
@@ -48,7 +48,7 @@ until [ -e $$NPM_DEV_PATH ]; do
 done
 
 echo "  ✅"
-echo "NPM dev server started."
+echo "{{jsPackageManager}} dev server started."
 echo "Waiting for client-fastopt/main.js to be generated."
 
 until [ -e $$MAIN_JS_PATH ]; do
@@ -96,7 +96,7 @@ rm -f $$MAIN_JS_PATH
 touch $$NPM_DEV_PATH
 
 cd {{modules}}/{{appProjectId}}
-npm run dev
+{{jsPackageManager}} run dev
 """
 
   val serverRun = s"""
@@ -137,7 +137,7 @@ if buildSbt isYoungerThan buildEnv then
 
 npmCommand foreach: command =>
   println(s"✨ Installing ($$command) node modules...")
-  os.proc("npm", command).call(cwd = client)
+  os.proc("{{jsPackageManager}}", command).call(cwd = client)
   println("Node modules installation complete.")
 
 // Utils && Helpers
@@ -156,7 +156,7 @@ def npmCommand(using client: Path): Option[String] =
     println("🟢 CI")
     Some("ci")
   } else {
-    println("\\t- ✅ npm are deps uptodate.")
+    println("\\t- ✅ {{jsPackageManager}} are deps uptodate.")
     None
   }
 

@@ -21,6 +21,9 @@ object FullstackPlugin extends AutoPlugin {
       settingKey[Boolean]("Docker")
     val fullstackNpmBuild: SettingKey[Boolean] =
       settingKey[Boolean]("npm build (false)")
+    val fullstackJsPackageManager: SettingKey[String] =
+      settingKey[String]("Js package manager (npm, bun)")
+        .withRank(KeyRanks.Invisible)
     val fullstackJsModules: SettingKey[String] =
       settingKey[String]("Client project module folder")
         .withRank(KeyRanks.Invisible)
@@ -84,7 +87,7 @@ object FullstackPlugin extends AutoPlugin {
                     scala.sys.process
                       .Process(
                         List(
-                          "npm",
+                          fullstackJsPackageManager.value,
                           "run",
                           "build",
                           "--",
@@ -125,6 +128,7 @@ object FullstackPlugin extends AutoPlugin {
     }
 
   override lazy val buildSettings = Seq(
+    fullstackJsPackageManager := "npm",
     fullstackJsModules := "modules",
     fullstackJvmProject := None,
     fullstackSetup :=
@@ -140,6 +144,7 @@ object FullstackPlugin extends AutoPlugin {
     ),
     fullstackScriptsVariables := {
       Map(
+        "jsPackageManager" -> fullstackJsPackageManager.value,
         "modules" -> fullstackJsModules.value,
         "appProjectId" -> fullstackJsProject.value.id
       ) ++ fullstackJvmProject.value.map(p => "serverProjectId" -> p.id)
