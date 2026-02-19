@@ -4,6 +4,18 @@ import sbt._
 import sbt.Keys._
 import sbt.plugins.JvmPlugin
 
+sealed trait PackageManager {
+  def bin: String
+}
+object PackageManager {
+  case object Npm extends PackageManager {
+    override def bin: String = "npm"
+  }
+  case object Bun extends PackageManager {
+    override def bin: String = "bun"
+  }
+}
+
 object FullstackPlugin extends AutoPlugin {
 
   override def trigger: PluginTrigger = noTrigger
@@ -21,8 +33,8 @@ object FullstackPlugin extends AutoPlugin {
       settingKey[Boolean]("Docker")
     val fullstackNpmBuild: SettingKey[Boolean] =
       settingKey[Boolean]("npm build (false)")
-    val fullstackJsPackageManager: SettingKey[String] =
-      settingKey[String]("Js package manager (npm, bun)")
+    val fullstackJsPackageManager: SettingKey[PackageManager] =
+      settingKey[PackageManager]("Js package manager (npm, bun)")
         .withRank(KeyRanks.Invisible)
     val fullstackJsModules: SettingKey[String] =
       settingKey[String]("Client project module folder")
@@ -87,7 +99,7 @@ object FullstackPlugin extends AutoPlugin {
                     scala.sys.process
                       .Process(
                         List(
-                          fullstackJsPackageManager.value,
+                          fullstackJsPackageManager.value.bin,
                           "run",
                           "build",
                           "--",
@@ -127,8 +139,16 @@ object FullstackPlugin extends AutoPlugin {
       )
     }
 
+  private def jsPackageManagerLockFile(
+      jsPackageManager: PackageManager
+  ): String =
+    jsPackageManager match {
+      case PackageManager.Npm => "package-lock.json"
+      case PackageManager.Bun => "bun.lock"
+    }
+
   override lazy val buildSettings = Seq(
-    fullstackJsPackageManager := "npm",
+    fullstackJsPackageManager := PackageManager.Bun,
     fullstackJsModules := "modules",
     fullstackJvmProject := None,
     fullstackSetup :=
@@ -144,7 +164,10 @@ object FullstackPlugin extends AutoPlugin {
     ),
     fullstackScriptsVariables := {
       Map(
-        "jsPackageManager" -> fullstackJsPackageManager.value,
+        "jsPackageManager" -> fullstackJsPackageManager.value.bin,
+        "jsPackageManagerLockFile" -> jsPackageManagerLockFile(
+          fullstackJsPackageManager.value
+        ),
         "modules" -> fullstackJsModules.value,
         "appProjectId" -> fullstackJsProject.value.id
       ) ++ fullstackJvmProject.value.map(p => "serverProjectId" -> p.id)
