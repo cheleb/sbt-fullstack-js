@@ -107,7 +107,7 @@ sbt 'fullstackServer; ~{{serverProjectId}}/reStart'
 
   val setupSc = s"""
 // using javaOptions "--sun-misc-unsafe-memory-access=allow" // Example option to set maximum heap size
-//> using dep "com.lihaoyi::os-lib:0.11.6"
+//> using dep "com.lihaoyi::os-lib:0.11.8"
 
 import os.*
 
@@ -164,9 +164,9 @@ def buildSbt                            = os.pwd / "build.sbt"
 def buildEnv                            = os.pwd / "{{managed}}" / "build-env.sh"
 def devMarker                           = os.pwd / "target" / "dev-server-running.marker"
 def npmDevMarker                        = os.pwd / "target" / "npm-dev-server-running.marker"
-def nodeModule(using client: Path)      = client / "node_modules" / ".package-lock.json"
+def nodeModule(using client: Path)      = client / "node_modules"
 def packageJson(using client: Path)     = client / "package.json"
-def packageLockJson(using client: Path) = client / "package-lock.json"
+def packageLockJson(using client: Path) = client / "{{jsPackageManagerLockFile}}"
 
 /** Delete semaphore files to sync multiple sbt launchs.
   */
