@@ -39,7 +39,7 @@ lazy val plugin = project
   .enablePlugins(SbtPlugin, ScriptedPlugin)
   .settings(
     moduleName := "sbt-fullstack-js",
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % Test,
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.20" % Test,
     (pluginCrossBuild / sbtVersion) := {
       scalaBinaryVersion.value match {
         case "2.12" => "1.12.0"
