@@ -169,7 +169,8 @@ object FullstackPlugin extends AutoPlugin {
           fullstackJsPackageManager.value
         ),
         "modules" -> fullstackJsModules.value,
-        "appProjectId" -> fullstackJsProject.value.id
+        "appProjectId" -> fullstackJsProject.value.id,
+        "appProjectFolder" -> fullstackJsProject.value.base.getName
       ) ++ fullstackJvmProject.value.map(p => "serverProjectId" -> p.id)
     },
     fullstackScripts := {
