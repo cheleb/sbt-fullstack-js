@@ -2,7 +2,7 @@ name := """sbt-fullstack-js"""
 organization := "dev.cheleb"
 
 val scala212 = "2.12.21"
-val scala3 = "3.7.4"
+val scala3 = "3.9.0"
 
 inThisBuild(
   List(
@@ -34,6 +34,13 @@ inThisBuild(
 
 console / initialCommands := """import dev.cheleb.sbt.fullstackjs._"""
 
+lazy val root = project.
+  settings(
+    name := "root",
+    publish / skip := true
+  ).
+  aggregate(plugin)
+
 lazy val plugin = project
   .in(file("plugin"))
   .enablePlugins(SbtPlugin, ScriptedPlugin)
@@ -43,7 +50,7 @@ lazy val plugin = project
     (pluginCrossBuild / sbtVersion) := {
       scalaBinaryVersion.value match {
         case "2.12" => "1.12.0"
-        case _      => "2.0.0-RC8"
+        case _      => "2.0.8"
       }
     },
     scriptedSbt := {

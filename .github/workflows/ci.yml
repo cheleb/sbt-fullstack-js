@@ -13,7 +13,7 @@ jobs:
         distribution: 'zulu'
         cache: sbt
     - name: Install sbt
-      uses: sbt/setup-sbt@v1
+      uses: sbt/setup-sbt@v1.5.8
     - name: sbt 1.x (Scala 2.12)
       run: sbt test 
     - name: sbt 2.x (Scala 3.7)
