@@ -1,7 +1,7 @@
 name := """sbt-fullstack-js"""
 organization := "dev.cheleb"
 
-val scala212 = "2.12.21"
+val scala212 = "3.9.0"
 val scala3 = "3.7.4"
 
 inThisBuild(
